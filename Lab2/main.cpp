@@ -3,14 +3,6 @@
 
 #define ARRAY_SIZE 8
 
-#define FIRST_GLOBAL            1
-#define FIRST_WEIGHTED          1
-#define FIRST_MULTIPLIER        3
-
-#define SECOND_GLOBAL           0
-#define SECOND_WEIGHTED         1
-#define SECOND_MULTIPLIER       2
-
 using namespace std;
 
 static int array_list[ARRAY_SIZE][ARRAY_SIZE] = {{0, 1, 1, 0, 0, 0, 0, 0},
@@ -22,7 +14,7 @@ static int array_list[ARRAY_SIZE][ARRAY_SIZE] = {{0, 1, 1, 0, 0, 0, 0, 0},
                                                  {0, 0, 0, 0, 0, 0, 0, 1},
                                                  {0, 0, 0, 0, 0, 0, 0, 0}};
 static double array_probs[] = {0.84, 0.84, 0.91, 0.6, 0.44, 0.74, 0.57, 0.79};
-static int time_ = 711;
+static int time_ = 10;
 
 static void modified_dfs(int start, vector<int> endings, vector< vector<int> >& paths, vector<int>& current_path, vector<bool>& colored)
 {
@@ -89,35 +81,12 @@ void dfs(int depth, int s, int i, vector<int>& c, const vector<int>& v, vector< 
     }
 }
 
-static void get_new_probs(const vector< vector<int> >& paths, const vector<int>& universal,
-                          const double* in_probs, vector<double>& out_probs)
-{
-    for (int i = 0; i < paths.size(); i++)
-    {
-        vector<int> universal_copy;
-        set_difference (universal.begin(), universal.end(),
-                        paths[i].begin(), paths[i].end(),
-                        inserter(universal_copy, universal_copy.begin()));
-
-        double prob = 1.0;
-        for (int j = 0; j < paths[i].size(); j++)
-        {
-            prob *= in_probs[paths[i][j]];
-        }
-        for (int j = 0; j < universal_copy.size(); j++)
-        {
-            prob *= 1.0 - in_probs[universal_copy[j]];
-        }
-        out_probs.push_back(prob);
-    }
-}
-
 int main()
 {
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    cout << "Всі шляхи від 1 до " << ARRAY_SIZE << endl;
+    cout << "�� ����� �� 1 �� " << ARRAY_SIZE << endl;
 
     vector<int> started, endings;
     for (int i = 0; i < ARRAY_SIZE; i++)
@@ -205,9 +174,26 @@ int main()
     sort(paths_extended.begin(), paths_extended.end(), sort_vec_vec);
 
     vector<double> probs_counted;
-    get_new_probs(paths_extended, universal, array_probs, probs_counted);
+    for (int i = 0; i < paths_extended.size(); i++)
+    {
+        vector<int> universal_copy;
+        set_difference (universal.begin(), universal.end(),
+                        paths_extended[i].begin(), paths_extended[i].end(),
+                        inserter(universal_copy, universal_copy.begin()));
 
-    cout << "Таблиця працездатних станів системи:" << endl;
+        double prob = 1.0;
+        for (int j = 0; j < paths_extended[i].size(); j++)
+        {
+            prob *= array_probs[paths_extended[i][j]];
+        }
+        for (int j = 0; j < universal_copy.size(); j++)
+        {
+            prob *= 1.0 - array_probs[universal_copy[j]];
+        }
+        probs_counted.push_back(prob);
+    }
+
+    cout << "������� ������������ ������ �������:" << endl;
 
     double probs_sum = 0.0;
     for (int i = 0; i < paths_extended.size(); i++)
@@ -220,114 +206,9 @@ int main()
         cout << "\t= " << probs_counted[i] << endl;
     }
 
-    cout    << "\nЙмовірність безвідмовної роботи P(" << time_ << ") = " << probs_sum
-            << "\nЙмовірність відмов Q(" << time_ << ") = " << 1 - probs_sum
-            << "\nІнтенсивність відмов Lambda(" << time_ << ") = " << -log(probs_sum) / time_
-            << "\nСередній наробіток до відмови T(" << time_ << ") = " << -time_ / log(probs_sum) << endl;
-
-// ======================== COUNTING SYSTEM 1 =========================
-    cout    << "\nСистема з "
-#if FIRST_GLOBAL
-            << "загальним "
-#else
-            << "роздільним "
-#endif // FIRST_GLOBAL
-#if !FIRST_WEIGHTED
-            << "не"
-#endif
-            << "навантаженим резервуванням, з кратністю " << FIRST_MULTIPLIER << ":" << endl;
-
-    vector<double> paths_tmp;
-#if FIRST_GLOBAL
-    get_new_probs(paths_extended, universal, array_probs, paths_tmp);
-#else
-    cout << "Ймовірність відмови та безвідмовної роботи кожного елемента системи" << endl;
-    double edit_probs[ARRAY_SIZE];
-    for (int i = 0; i < ARRAY_SIZE; i++)
-    {
-        edit_probs[i] = 1 - pow(1 - array_probs[i], FIRST_MULTIPLIER + 1);
-        cout    << "\tQr" << i + 1 << " = " << 1 - edit_probs[i]
-                << ",    Pr" << i + 1 << " = " << edit_probs[i] << endl;
-    }
-    get_new_probs(paths_extended, universal, edit_probs, paths_tmp);
-#endif // FIRST_GLOBAL
-
-    double paths_tmp_sum = 0.0;
-    for (int i = 0; i < paths_tmp.size(); i++)
-    {
-        paths_tmp_sum += paths_tmp[i];
-    }
-
-#if FIRST_WEIGHTED
-#if FIRST_GLOBAL
-    double prs = 1 - pow(1 - paths_tmp_sum, FIRST_MULTIPLIER + 1);
-#else
-    double prs = paths_tmp_sum;
-#endif // FIRST_GLOBAL
-    double qrs = 1 - prs;
-#else
-    double qrs = 1 / tgamma(FIRST_MULTIPLIER + 2) * (1 - paths_tmp_sum);
-    double prs = 1 - qrs;
-#endif // FIRST_WEIGHTED
-
-    cout    << "Ймовірність відмови Qrs(" << time_ << ") = " << qrs
-            << "\nЙмовірність безвідмовної роботи Prs(" << time_ << ") = " << prs
-            << "\nСередній наробіток до відмови Trs(" << time_ << ") = " << -time_ / log(prs)
-            << "\nВиграш надійності\tза ймовірністю відмов Gq(" << time_ << ") = " << qrs / (1 - probs_sum)
-            << "\n\t\t\tза ймовірністю безвідмовної роботи Gp(" << time_ << ") = " << prs / probs_sum
-            << "\n\t\t\tза середнім часом безвідмовної роботи Gt(" << time_ << ") = " << log(probs_sum) / log(prs) << endl;
-
-// ======================== COUNTING SYSTEM 2 =========================
-    cout    << "\nСистема з "
-#if SECOND_GLOBAL
-            << "загальним "
-#else
-            << "роздільним "
-#endif // SECOND_GLOBAL
-#if !SECOND_WEIGHTED
-            << "не"
-#endif
-            << "навантаженим резервуванням, з кратністю " << SECOND_MULTIPLIER << ":" << endl;
-
-    vector<double> paths_tmp2;
-#if SECOND_GLOBAL
-    get_new_probs(paths_extended, universal, array_probs, paths_tmp2);
-#else
-    cout << "Ймовірність відмови та безвідмовної роботи кожного елемента системи" << endl;
-    double edit_probs2[ARRAY_SIZE];
-    for (int i = 0; i < ARRAY_SIZE; i++)
-    {
-        edit_probs2[i] = 1 - pow(1 - array_probs[i], SECOND_MULTIPLIER + 1);
-        cout    << "\tQr" << i + 1 << " = " << 1 - edit_probs2[i]
-                << ",    Pr" << i + 1 << " = " << edit_probs2[i] << endl;
-    }
-    get_new_probs(paths_extended, universal, edit_probs2, paths_tmp2);
-#endif // SECOND_GLOBAL
-
-    double paths_tmp_sum2 = 0.0;
-    for (int i = 0; i < paths_tmp2.size(); i++)
-    {
-        paths_tmp_sum2 += paths_tmp2[i];
-    }
-
-#if SECOND_WEIGHTED
-#if SECOND_GLOBAL
-    double prs2 = 1 - pow(1 - paths_tmp_sum2, SECOND_MULTIPLIER + 1);
-#else
-    double prs2 = paths_tmp_sum2;
-#endif // SECOND_GLOBAL
-    double qrs2 = 1 - prs2;
-#else
-    double qrs2 = 1 / tgamma(SECOND_MULTIPLIER + 2) * (1 - paths_tmp_sum2);
-    double prs2 = 1 - qrs2;
-#endif // SECOND_WEIGHTED
-
-    cout    << "Ймовірність відмови Qrs(" << time_ << ") = " << qrs2
-            << "\nЙмовірність безвідмовної роботи Prs(" << time_ << ") = " << prs2
-            << "\nСередній наробіток до відмови Trs(" << time_ << ") = " << -time_ / log(prs2)
-            << "\nВиграш надійності\tза ймовірністю відмов Gq(" << time_ << ") = " << qrs2 / (1 - probs_sum)
-            << "\n\t\t\tза ймовірністю безвідмовної роботи Gp(" << time_ << ") = " << prs2 / probs_sum
-            << "\n\t\t\tза середнім часом безвідмовної роботи Gt(" << time_ << ") = " << log(probs_sum) / log(prs2) << endl;
+    cout    << "\n���������� ������ P = " << probs_sum
+            << "\n������������� ����� Lambda = " << -log(probs_sum) / time_
+            << "\n�������� �������� �� ������ T = " << -time_ / log(probs_sum) << endl;
 
     return 0;
 }
