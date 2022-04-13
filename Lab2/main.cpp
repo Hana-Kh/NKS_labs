@@ -86,7 +86,7 @@ int main()
     SetConsoleCP(1251);
     SetConsoleOutputCP(1251);
 
-    cout << "Âñ³ øëÿõè â³ä 1 äî " << ARRAY_SIZE << endl;
+    cout << "Ð’ÑÑ– ÑˆÐ»ÑÑ…Ð¸ Ð²Ñ–Ð´ 1 Ð´Ð¾ " << ARRAY_SIZE << endl;
 
     vector<int> started, endings;
     for (int i = 0; i < ARRAY_SIZE; i++)
@@ -193,7 +193,7 @@ int main()
         probs_counted.push_back(prob);
     }
 
-    cout << "Òàáëèöÿ ïðàöåçäàòíèõ ñòàí³â ñèñòåìè:" << endl;
+    cout << "Ð¢Ð°Ð±Ð»Ð¸Ñ†Ñ Ð¿Ñ€Ð°Ñ†ÐµÐ·Ð´Ð°Ñ‚Ð½Ð¸Ñ… ÑÑ‚Ð°Ð½Ñ–Ð² ÑÐ¸ÑÑ‚ÐµÐ¼Ð¸:" << endl;
 
     double probs_sum = 0.0;
     for (int i = 0; i < paths_extended.size(); i++)
@@ -206,9 +206,9 @@ int main()
         cout << "\t= " << probs_counted[i] << endl;
     }
 
-    cout    << "\nÉìîâ³ðí³ñòü â³äìîâè P = " << probs_sum
-            << "\n²íòåíñèâí³ñòü â³äìîâ Lambda = " << -log(probs_sum) / time_
-            << "\nÑåðåäí³é íàðîá³òîê äî â³äìîâè T = " << -time_ / log(probs_sum) << endl;
+    cout    << "\nÐ™Ð¼Ð¾Ð²Ñ–Ñ€Ð½Ñ–ÑÑ‚ÑŒ Ð²Ñ–Ð´Ð¼Ð¾Ð²Ð¸ P = " << probs_sum
+            << "\nÐ†Ð½Ñ‚ÐµÐ½ÑÐ¸Ð²Ð½Ñ–ÑÑ‚ÑŒ Ð²Ñ–Ð´Ð¼Ð¾Ð² Lambda = " << -log(probs_sum) / time_
+            << "\nÐ¡ÐµÑ€ÐµÐ´Ð½Ñ–Ð¹ Ð½Ð°Ñ€Ð¾Ð±Ñ–Ñ‚Ð¾Ðº Ð´Ð¾ Ð²Ñ–Ð´Ð¼Ð¾Ð²Ð¸ T = " << -time_ / log(probs_sum) << endl;
 
     return 0;
 }
